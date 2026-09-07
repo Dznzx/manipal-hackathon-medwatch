@@ -72,7 +72,10 @@ export function computeRedistributionSuggestions(
       if (!best) continue;
 
       const suggestedQuantity = Math.min(neededQty, best.surplusAvailable);
-      if (suggestedQuantity <= 0) continue;
+      // Skip transfers that would move less than a day's worth of consumption —
+      // by the time a donor's surplus is mostly spoken for by more urgent
+      // recipients, what's left may be too little to be a meaningful move.
+      if (suggestedQuantity < recipient.avgDailyConsumption) continue;
       remainingSurplus.set(best.donorFacility.id, best.surplusAvailable - suggestedQuantity);
 
       // Three normalized 0-1 factors, blended into one explainable urgency score.
