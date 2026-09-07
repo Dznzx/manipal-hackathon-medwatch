@@ -9,7 +9,9 @@ import FacilityDetail from "@/components/FacilityDetail";
 import RegionalRiskPanel from "@/components/RegionalRiskPanel";
 import RedistributionPanel from "@/components/RedistributionPanel";
 import SimControls from "@/components/SimControls";
-import { Activity, Map, AlertTriangle, Truck, ListChecks } from "lucide-react";
+import PriorityQueue from "@/components/PriorityQueue";
+import { generateSituationReport, downloadTextFile } from "@/lib/report";
+import { Activity, Map, AlertTriangle, Truck, ListChecks, FileDown } from "lucide-react";
 
 export default function Home() {
   const [data, setData] = useState<StateResponse | null>(null);
@@ -104,6 +106,13 @@ export default function Home() {
           <span className={`rounded-full px-2.5 py-1 font-medium ${criticalCount > 0 ? "bg-orange-500/10 text-orange-300" : "bg-slate-800 text-slate-400"}`}>
             {criticalCount} critical stock{criticalCount === 1 ? "" : "s"}
           </span>
+          <button
+            onClick={() => downloadTextFile(`medwatch-situation-report-day${data.simDay}.txt`, generateSituationReport(data))}
+            className="flex items-center gap-1.5 rounded-full bg-slate-800 hover:bg-slate-700 px-2.5 py-1 font-medium text-slate-300"
+          >
+            <FileDown size={13} />
+            Situation report
+          </button>
         </div>
       </header>
 
@@ -113,6 +122,8 @@ export default function Home() {
         onChange={(patch) => update(patch)}
         onReset={() => update({ reset: true })}
       />
+
+      <PriorityQueue risks={data.regionalRisks} suggestions={data.suggestions} />
 
       <div className={`grid grid-cols-1 lg:grid-cols-[1.3fr_1fr_1fr] gap-4 flex-1 min-h-0 transition-opacity ${loading ? "opacity-60" : ""}`}>
         <div className="flex flex-col gap-4 min-h-0">

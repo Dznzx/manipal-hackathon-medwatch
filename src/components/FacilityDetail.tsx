@@ -4,7 +4,7 @@ import { Facility, Forecast, Medicine, StockRecord } from "@/lib/types";
 import { STATUS_COLORS, confidenceLabel } from "@/lib/ui";
 import StatusPill from "./StatusPill";
 import WhyPopover from "./WhyPopover";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
+import ForecastChart from "./ForecastChart";
 import { X, TrendingDown, TrendingUp, Minus } from "lucide-react";
 
 interface Props {
@@ -48,7 +48,6 @@ export default function FacilityDetail({ facility, medicines, stock, forecasts, 
             const colors = STATUS_COLORS[forecast.status];
             const TrendIcon = TREND_ICON[forecast.trend];
             const stockPct = Math.min(100, (record.currentStock / (record.reorderLevel * 3)) * 100);
-            const chartData = record.history.map((h) => ({ day: h.day, units: h.units }));
 
             return (
               <div key={medicine.id} className={`rounded-lg border border-slate-700/70 p-3 ${colors.bg}`}>
@@ -83,13 +82,15 @@ export default function FacilityDetail({ facility, medicines, stock, forecasts, 
                   <div className={`h-full ${colors.dot}`} style={{ width: `${stockPct}%` }} />
                 </div>
 
-                <div className="mt-2 h-10">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <Line type="monotone" dataKey="units" stroke="#94a3b8" strokeWidth={1.5} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div className="mt-2 h-14">
+                  <ForecastChart
+                    currentStock={record.currentStock}
+                    avgDailyConsumption={forecast.avgDailyConsumption}
+                    consumptionStdDev={forecast.consumptionStdDev}
+                    reorderLevel={record.reorderLevel}
+                  />
                 </div>
+                <div className="text-[10px] text-slate-500">Projected stock — shaded band is the uncertainty range (±1 std dev in daily use); dashed line is reorder point</div>
 
                 {record.pendingReplenishment && (
                   <div className="mt-1 text-[11px] text-sky-300">

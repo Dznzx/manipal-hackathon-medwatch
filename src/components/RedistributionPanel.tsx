@@ -32,6 +32,14 @@ export default function RedistributionPanel({ suggestions }: { suggestions: Redi
             <div className="mt-1.5 text-xs text-slate-400">
               {s.medicineName} · <span className="text-slate-300 font-medium">{s.suggestedQuantity} units</span> · {s.distance} km away
             </div>
+            {s.withoutTransferDays !== null && (
+              <div className="mt-2 flex items-center gap-2 text-[11px]">
+                <span className="rounded bg-red-500/10 text-red-300 px-1.5 py-0.5">Without: {s.withoutTransferDays}d</span>
+                <ArrowRight size={11} className="text-slate-600" />
+                <span className="rounded bg-emerald-500/10 text-emerald-300 px-1.5 py-0.5">With: ~{s.withTransferDays}d</span>
+                <span className="text-slate-500">(+{s.extraDaysGained}d gained)</span>
+              </div>
+            )}
             <div className="mt-2 flex items-center justify-between">
               <WhyPopover title="Why this transfer?" lines={s.reasoning} />
               <button

@@ -83,10 +83,19 @@ export function computeRedistributionSuggestions(
       const proximityFactor = Math.max(0, 1 - best.dist / 100);
       const urgencyScore = Math.round((urgencyFactor * 0.5 + adequacyFactor * 0.3 + proximityFactor * 0.2) * 100);
 
+      // Impact preview: how many extra days of cover this specific shipment buys,
+      // on top of whatever the recipient's own forecast already assumes (including
+      // its own pending routine reorder, if any) — makes the recommendation's value
+      // concrete instead of an abstract "urgency score".
+      const withoutTransferDays = recipient.daysToStockout;
+      const extraDaysGained = recipient.avgDailyConsumption > 0 ? Math.round(suggestedQuantity / recipient.avgDailyConsumption) : 0;
+      const withTransferDays = withoutTransferDays !== null ? withoutTransferDays + extraDaysGained : null;
+
       const reasoning = [
         `${recipientFacility.name} is projected to run out of ${medicine.name} in ${recipient.daysToStockout} day(s) (status: ${recipient.status}), which is inside or near its own ${recipientRecord.replenishmentLeadTimeDays}-day replenishment lead time — a routine reorder may not arrive in time.`,
         `${best.donorFacility.name} is the nearest facility with confirmed surplus: ${best.surplusAvailable} ${medicine.unit} above its own safety buffer, ${best.dist.toFixed(0)} distance-units away.`,
         `Suggested transfer of ${suggestedQuantity} ${medicine.unit} covers ${Math.round((suggestedQuantity / neededQty) * 100)}% of the recipient's gap to a ${targetCoverDays}-day safety cover.`,
+        `Without this transfer: stockout in ${withoutTransferDays} day(s). With it: pushed to ~${withTransferDays} day(s) — ${extraDaysGained} extra day(s) of cover.`,
         `Urgency score ${urgencyScore}/100 = 50% recipient urgency + 30% how fully this shipment covers the gap + 20% proximity.`,
       ];
 
@@ -102,6 +111,9 @@ export function computeRedistributionSuggestions(
         distance: Math.round(best.dist),
         urgencyScore,
         reasoning,
+        withoutTransferDays,
+        withTransferDays,
+        extraDaysGained,
       });
     }
   }

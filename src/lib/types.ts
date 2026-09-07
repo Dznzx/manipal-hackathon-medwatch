@@ -88,6 +88,9 @@ export interface RedistributionSuggestion {
   distance: number;
   urgencyScore: number; // 0-100
   reasoning: string[];
+  withoutTransferDays: number | null; // recipient's current projected days-to-stockout
+  withTransferDays: number | null; // projected days-to-stockout after this transfer
+  extraDaysGained: number;
 }
 
 export interface SimParams {
