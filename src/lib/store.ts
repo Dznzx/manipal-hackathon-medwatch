@@ -45,12 +45,23 @@ function projectStock(record: StockRecord, simDay: number, params: SimParams): S
     ? { ...record.pendingReplenishment, etaDay: record.pendingReplenishment.etaDay + params.replenishmentDelayDays }
     : null;
 
+  // Routine reordering: a real facility doesn't just run to zero and stop — once
+  // stock drops to its reorder point, it places a normal order that arrives after
+  // its usual lead time (plus any simulated delay). This keeps stable facilities
+  // stable over a long horizon so the demo's "regional vs isolated" contrast stays
+  // visible instead of every facility eventually going critical from pure neglect.
+  const leadTime = record.replenishmentLeadTimeDays + params.replenishmentDelayDays;
+  const routineOrderQty = record.reorderLevel * 3;
+
   for (let d = 1; d <= simDay; d++) {
     if (pending && d >= pending.etaDay) {
       stock += pending.quantity;
       pending = null;
     }
     stock = Math.max(0, stock - effectiveConsumption);
+    if (!pending && stock <= record.reorderLevel && effectiveConsumption > 0) {
+      pending = { quantity: routineOrderQty, etaDay: d + leadTime };
+    }
   }
 
   // Append synthetic recent-history entries reflecting the spike so the forecast
@@ -63,11 +74,17 @@ function projectStock(record: StockRecord, simDay: number, params: SimParams): S
         }))]
       : record.history;
 
+  // The forecast engine's contract is that pendingReplenishment.etaDay is "days
+  // from now", not an absolute day count — rebase it relative to the current
+  // simDay before handing it off, otherwise a still-outstanding order looks
+  // `simDay` days further away than it really is once time has moved forward.
+  const rebasedPending = pending ? { ...pending, etaDay: pending.etaDay - simDay } : null;
+
   return {
     ...record,
     currentStock: Math.round(stock),
     history: projectedHistory,
-    pendingReplenishment: pending,
+    pendingReplenishment: rebasedPending,
   };
 }
 

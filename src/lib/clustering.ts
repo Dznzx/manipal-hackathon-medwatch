@@ -1,9 +1,10 @@
 import { Forecast, RegionalRisk, RiskLevel, WorldState } from "./types";
 
-// "watch" is included deliberately: the regional-pattern signal we want to catch is
-// facilities *trending* toward stockout together, not only the ones already critical —
-// by the time several facilities hit "critical" independently, it's too late to redistribute.
-const AT_RISK_STATUSES = new Set(["critical", "at-risk", "watch"]);
+// Deliberately excludes "watch": with routine reordering in play, healthy facilities
+// pass through "watch" briefly on every normal reorder cycle, so it's too noisy a
+// signal for "this needs regional attention". "at-risk"/"critical" means a facility's
+// own resupply may not arrive in time, which is the real regional-pattern signal.
+const AT_RISK_STATUSES = new Set(["critical", "at-risk"]);
 
 interface GroupKey {
   clusterId: string;

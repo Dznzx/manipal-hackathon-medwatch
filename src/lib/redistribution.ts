@@ -21,7 +21,7 @@ export function computeRedistributionSuggestions(
     const forMedicine = forecasts.filter((f) => f.medicineId === medicine.id);
 
     const recipients = forMedicine
-      .filter((f) => f.status === "critical" || f.status === "at-risk" || f.status === "watch")
+      .filter((f) => f.status === "critical" || f.status === "at-risk")
       .sort((a, b) => (a.daysToStockout ?? 999) - (b.daysToStockout ?? 999));
 
     const donors = forMedicine.filter((f) => {

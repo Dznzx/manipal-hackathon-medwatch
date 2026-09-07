@@ -1,5 +1,5 @@
 import { Facility, Medicine, StockRecord, WorldState, ConsumptionDay } from "./types";
-import { mulberry32, gaussian, RandFn } from "./rng";
+import { mulberry32, gaussian, randRange, randInt, RandFn } from "./rng";
 
 export const HISTORY_DAYS = 21;
 export const DEFAULT_SEED = 42;
@@ -70,9 +70,9 @@ interface ScenarioSpec {
 // pair not listed here gets a generic "healthy" filler so the dataset feels complete.
 const SCENARIOS: ScenarioSpec[] = [
   // --- North Region: Amoxicillin declining at 3 of 4 facilities => regional risk ---
-  { facilityId: "f1", medicineId: "amox", scenario: "regional-decline", startStock: 140, baseConsumption: 9, noiseStdDev: 1.8, leadTime: 7, reorderLevel: 60 },
-  { facilityId: "f2", medicineId: "amox", scenario: "regional-decline", startStock: 110, baseConsumption: 8, noiseStdDev: 1.5, leadTime: 6, reorderLevel: 50 },
-  { facilityId: "f3", medicineId: "amox", scenario: "regional-decline", startStock: 200, baseConsumption: 11, noiseStdDev: 2.2, leadTime: 8, reorderLevel: 80, pending: { quantity: 40, etaDay: 9 } },
+  { facilityId: "f1", medicineId: "amox", scenario: "regional-decline", startStock: 140, baseConsumption: 9.5, noiseStdDev: 1.8, leadTime: 7, reorderLevel: 60 },
+  { facilityId: "f2", medicineId: "amox", scenario: "regional-decline", startStock: 110, baseConsumption: 9.6, noiseStdDev: 1.5, leadTime: 6, reorderLevel: 50 },
+  { facilityId: "f3", medicineId: "amox", scenario: "regional-decline", startStock: 200, baseConsumption: 14, noiseStdDev: 2.2, leadTime: 8, reorderLevel: 80 },
   { facilityId: "f4", medicineId: "amox", scenario: "surplus", startStock: 260, baseConsumption: 4, noiseStdDev: 0.8, leadTime: 5, reorderLevel: 60 },
 
   // --- East Region: Insulin isolated stockout at one facility only ---
@@ -118,16 +118,23 @@ function genHistory(rand: RandFn, spec: ScenarioSpec): { history: ConsumptionDay
   return { history, currentStock: Math.round(stock) };
 }
 
-function fillerSpec(facilityId: string, medicineId: string): ScenarioSpec {
+// Filler pairs deliberately vary in starting stock/consumption/lead-time/reorder
+// point per facility. Without this variety they'd all cross their reorder
+// threshold on nearly the same simulated day and falsely read as a "regional"
+// pattern once the time-slider runs forward — a coincidence-of-timing artifact,
+// not a real correlated-demand signal, which would undermine the demo's core claim.
+function fillerSpec(rand: RandFn, facilityId: string, medicineId: string): ScenarioSpec {
+  const baseConsumption = randRange(rand, 2, 5);
+  const reorderLevel = randInt(rand, 20, 45);
   return {
     facilityId,
     medicineId,
     scenario: "healthy",
-    startStock: 100,
-    baseConsumption: 3,
-    noiseStdDev: 0.7,
-    leadTime: 6,
-    reorderLevel: 30,
+    startStock: reorderLevel * randRange(rand, 2.5, 4.5),
+    baseConsumption,
+    noiseStdDev: baseConsumption * 0.2,
+    leadTime: randInt(rand, 4, 9),
+    reorderLevel,
   };
 }
 
@@ -142,7 +149,7 @@ export function generateWorld(seed: number = DEFAULT_SEED): WorldState {
   for (const f of facilities) {
     for (const m of MEDICINES) {
       const key = `${f.id}:${m.id}`;
-      const spec = specMap.get(key) ?? fillerSpec(f.id, m.id);
+      const spec = specMap.get(key) ?? fillerSpec(rand, f.id, m.id);
       const { history, currentStock } = genHistory(rand, spec);
       stock.push({
         facilityId: f.id,
