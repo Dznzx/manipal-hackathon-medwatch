@@ -127,13 +127,14 @@ export default function Home() {
 
       <div className={`grid grid-cols-1 lg:grid-cols-[1.3fr_1fr_1fr] gap-4 flex-1 min-h-0 transition-opacity ${loading ? "opacity-60" : ""}`}>
         <div className="flex flex-col gap-4 min-h-0">
-          <Panel title="Facility Map" subtitle="Colored by worst medicine status · dashed regions = active regional risk" icon={<Map size={15} className="text-slate-400" />} className="h-[340px]" bodyClassName="p-2">
+          <Panel title="Facility Map" subtitle="Dashed regions = active regional risk · blue arrows = suggested transfers" icon={<Map size={15} className="text-slate-400" />} className="h-[340px]" bodyClassName="p-2">
             <FacilityMap
               facilities={data.facilities}
               forecasts={data.forecasts}
               selectedId={selectedId}
               onSelect={setSelectedId}
               regionalClusterIds={regionalClusterIds}
+              suggestions={data.suggestions}
             />
           </Panel>
           <Panel title="Facilities" subtitle={`${data.facilities.length} facilities in network`} icon={<ListChecks size={15} className="text-slate-400" />} className="flex-1 min-h-0" bodyClassName="p-0">

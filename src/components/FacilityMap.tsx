@@ -1,6 +1,6 @@
 "use client";
 
-import { Facility, Forecast } from "@/lib/types";
+import { Facility, Forecast, RedistributionSuggestion } from "@/lib/types";
 import { STATUS_COLORS } from "@/lib/ui";
 
 const STATUS_RANK: Record<Forecast["status"], number> = { critical: 3, "at-risk": 2, watch: 1, healthy: 0 };
@@ -15,17 +15,19 @@ interface Props {
   selectedId: string | null;
   onSelect: (id: string) => void;
   regionalClusterIds: Set<string>;
+  suggestions?: RedistributionSuggestion[];
 }
 
 const VIEW = 100;
 const PAD = 10;
 
-export default function FacilityMap({ facilities, forecasts, selectedId, onSelect, regionalClusterIds }: Props) {
+export default function FacilityMap({ facilities, forecasts, selectedId, onSelect, regionalClusterIds, suggestions = [] }: Props) {
   const clusters = new Map<string, { name: string; points: Facility[] }>();
   for (const f of facilities) {
     if (!clusters.has(f.clusterId)) clusters.set(f.clusterId, { name: f.clusterName, points: [] });
     clusters.get(f.clusterId)!.points.push(f);
   }
+  const facilityById = new Map(facilities.map((f) => [f.id, f]));
 
   return (
     <div className="relative w-full h-full">
@@ -34,6 +36,9 @@ export default function FacilityMap({ facilities, forecasts, selectedId, onSelec
         <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
           <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(148,163,184,0.08)" strokeWidth="0.3" />
         </pattern>
+        <marker id="route-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#38bdf8" />
+        </marker>
       </defs>
       <rect width={VIEW} height={VIEW} fill="url(#grid)" />
 
@@ -62,6 +67,26 @@ export default function FacilityMap({ facilities, forecasts, selectedId, onSelec
               {c.name.toUpperCase()}
             </text>
           </g>
+        );
+      })}
+
+      {suggestions.map((s) => {
+        const from = facilityById.get(s.fromFacilityId);
+        const to = facilityById.get(s.toFacilityId);
+        if (!from || !to) return null;
+        return (
+          <line
+            key={s.id}
+            x1={from.x}
+            y1={from.y}
+            x2={to.x}
+            y2={to.y}
+            stroke="#38bdf8"
+            strokeWidth={0.5}
+            strokeDasharray="1.2 1"
+            opacity={0.55}
+            markerEnd="url(#route-arrow)"
+          />
         );
       })}
 
