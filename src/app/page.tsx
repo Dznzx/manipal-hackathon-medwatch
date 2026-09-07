@@ -1,69 +1,163 @@
-import Image from "next/image";
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { StateResponse } from "@/lib/api-types";
+import Panel from "@/components/Panel";
+import FacilityMap from "@/components/FacilityMap";
+import FacilityList from "@/components/FacilityList";
+import FacilityDetail from "@/components/FacilityDetail";
+import RegionalRiskPanel from "@/components/RegionalRiskPanel";
+import RedistributionPanel from "@/components/RedistributionPanel";
+import SimControls from "@/components/SimControls";
+import { Activity, Map, AlertTriangle, Truck, ListChecks } from "lucide-react";
 
 export default function Home() {
+  const [data, setData] = useState<StateResponse | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/state");
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      const json: StateResponse = await res.json();
+      setData(json);
+      setError(null);
+    } catch {
+      setError("Couldn't load facility network. Check that the server is running and retry.");
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const update = useCallback(
+    async (patch: object) => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(patch),
+        });
+        if (!res.ok) throw new Error(`Request failed (${res.status})`);
+        const json: StateResponse = await res.json();
+        setData(json);
+        setError(null);
+      } catch {
+        setError("Couldn't apply that change. Retry in a moment.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  if (error && !data) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400 text-sm">
+        <p>{error}</p>
+        <button onClick={load} className="rounded-md bg-slate-800 px-3 py-1.5 text-slate-200 hover:bg-slate-700">
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex-1 flex items-center justify-center gap-2 text-slate-400 text-sm">
+        <span className="h-3.5 w-3.5 rounded-full border-2 border-slate-600 border-t-sky-400 animate-spin" />
+        Loading facility network…
+      </div>
+    );
+  }
+
+  const regionalClusterIds = new Set(
+    data.regionalRisks.filter((r) => r.riskLevel === "regional").map((r) => r.clusterId)
+  );
+  const selectedFacility = data.facilities.find((f) => f.id === selectedId) ?? null;
+  const regionalCount = data.regionalRisks.filter((r) => r.riskLevel === "regional").length;
+  const criticalCount = data.forecasts.filter((f) => f.status === "critical").length;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex-1 flex flex-col max-w-[1500px] w-full mx-auto px-5 py-4 gap-4">
+      {error && (
+        <div className="rounded-md bg-red-500/10 border border-red-500/30 text-red-300 text-xs px-3 py-2">{error}</div>
+      )}
+      <header className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-lg bg-sky-500/15 flex items-center justify-center">
+            <Activity size={17} className="text-sky-400" />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-slate-100 leading-tight">MedWatch</h1>
+            <p className="text-[11px] text-slate-500 leading-tight">Regional medicine shortage early warning</p>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+        <div className="flex items-center gap-3 text-xs">
+          <span className={`rounded-full px-2.5 py-1 font-medium ${regionalCount > 0 ? "bg-red-500/10 text-red-300" : "bg-slate-800 text-slate-400"}`}>
+            {regionalCount} regional risk{regionalCount === 1 ? "" : "s"}
+          </span>
+          <span className={`rounded-full px-2.5 py-1 font-medium ${criticalCount > 0 ? "bg-orange-500/10 text-orange-300" : "bg-slate-800 text-slate-400"}`}>
+            {criticalCount} critical stock{criticalCount === 1 ? "" : "s"}
+          </span>
+        </div>
+      </header>
+
+      <SimControls
+        simDay={data.simDay}
+        simParams={data.simParams}
+        onChange={(patch) => update(patch)}
+        onReset={() => update({ reset: true })}
+      />
+
+      <div className={`grid grid-cols-1 lg:grid-cols-[1.3fr_1fr_1fr] gap-4 flex-1 min-h-0 transition-opacity ${loading ? "opacity-60" : ""}`}>
+        <div className="flex flex-col gap-4 min-h-0">
+          <Panel title="Facility Map" subtitle="Colored by worst medicine status · dashed regions = active regional risk" icon={<Map size={15} className="text-slate-400" />} className="h-[340px]" bodyClassName="p-2">
+            <FacilityMap
+              facilities={data.facilities}
+              forecasts={data.forecasts}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              regionalClusterIds={regionalClusterIds}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </Panel>
+          <Panel title="Facilities" subtitle={`${data.facilities.length} facilities in network`} icon={<ListChecks size={15} className="text-slate-400" />} className="flex-1 min-h-0" bodyClassName="p-0">
+            <FacilityList facilities={data.facilities} forecasts={data.forecasts} selectedId={selectedId} onSelect={setSelectedId} />
+          </Panel>
         </div>
-      </main>
+
+        <Panel
+          title="Regional Risk Alerts"
+          subtitle="Isolated events vs. emerging regional patterns"
+          icon={<AlertTriangle size={15} className="text-slate-400" />}
+          className="min-h-0"
+        >
+          <RegionalRiskPanel risks={data.regionalRisks} />
+        </Panel>
+
+        <Panel
+          title="Redistribution Suggestions"
+          subtitle="Surplus → at-risk, ranked by urgency"
+          icon={<Truck size={15} className="text-slate-400" />}
+          className="min-h-0"
+        >
+          <RedistributionPanel suggestions={data.suggestions} />
+        </Panel>
+      </div>
+
+      {selectedFacility && (
+        <FacilityDetail
+          facility={selectedFacility}
+          medicines={data.medicines}
+          stock={data.stock}
+          forecasts={data.forecasts}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
     </div>
   );
 }
