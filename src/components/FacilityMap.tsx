@@ -50,8 +50,6 @@ export default function FacilityMap({ facilities, forecasts, selectedId, onSelec
     if (!clusters.has(f.clusterId)) clusters.set(f.clusterId, { name: f.clusterName, points: [] });
     clusters.get(f.clusterId)!.points.push(positions.get(f.id)!);
   }
-  const facilityById = new Map(facilities.map((f) => [f.id, f]));
-
   return (
     <div className="relative w-full h-full">
     <svg viewBox={`0 0 ${VIEW} ${VIEW}`} className="w-full h-full">

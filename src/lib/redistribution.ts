@@ -23,7 +23,6 @@ export function computeRedistributionSuggestions(
   forecasts: Forecast[]
 ): RedistributionSuggestion[] {
   const facilityById = new Map(world.facilities.map((f) => [f.id, f]));
-  const medicineById = new Map(world.medicines.map((m) => [m.id, m]));
   const stockByKey = new Map(world.stock.map((s) => [`${s.facilityId}:${s.medicineId}`, s]));
 
   const suggestions: RedistributionSuggestion[] = [];

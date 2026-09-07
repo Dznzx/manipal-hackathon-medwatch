@@ -96,28 +96,19 @@ const SCENARIOS: ScenarioSpec[] = [
 function genHistory(rand: RandFn, spec: ScenarioSpec): { history: ConsumptionDay[]; currentStock: number } {
   const days = spec.scenario === "low-history" ? 5 : HISTORY_DAYS;
   const history: ConsumptionDay[] = [];
-  let stock = spec.startStock;
   const trendSlope =
     spec.scenario === "regional-decline" ? 0.18 :
     spec.scenario === "isolated-decline" ? 0.15 :
     spec.scenario === "surplus" ? -0.05 :
     0.02;
 
-  // Walk forward through history so currentStock ends up consistent with consumption.
-  const consumptions: number[] = [];
   for (let d = 0; d < days; d++) {
     const trendFactor = 1 + trendSlope * (d / days);
     const units = Math.max(0, gaussian(rand, spec.baseConsumption * trendFactor, spec.noiseStdDev));
-    consumptions.push(units);
+    history.push({ day: d, units: Math.round(units * 10) / 10 });
   }
-  const totalConsumed = consumptions.reduce((a, b) => a + b, 0);
-  stock = spec.startStock; // startStock represents stock at the END of history (today)
-  // Reconstruct stock-at-day-0 by adding back consumption, then walk forward to build the log
-  let runningStock = stock + totalConsumed;
-  for (let d = 0; d < days; d++) {
-    runningStock -= consumptions[d];
-    history.push({ day: d, units: Math.round(consumptions[d] * 10) / 10 });
-  }
+  // startStock represents stock at the END of history (today).
+  const stock = spec.startStock;
 
   return { history, currentStock: Math.round(stock) };
 }

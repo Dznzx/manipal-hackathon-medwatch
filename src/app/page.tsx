@@ -35,6 +35,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    // Initial fetch on mount — synchronizing with the server's world state,
+    // not deriving state from props/state, so this is the intended use of
+    // an effect rather than the anti-pattern this rule otherwise guards against.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
 
@@ -64,8 +68,10 @@ export default function Home() {
     setReportLoading(true);
     try {
       const res = await fetch("/api/report", { method: "POST" });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const json = await res.json();
       downloadTextFile(`medwatch-situation-report-day${data?.simDay ?? 0}.txt`, json.report);
+      setError(null);
     } catch {
       setError("Couldn't generate the report. Retry in a moment.");
     } finally {
