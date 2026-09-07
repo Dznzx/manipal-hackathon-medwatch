@@ -61,7 +61,7 @@ export default function PriorityQueue({
       </div>
       <ol className="divide-y divide-slate-800">
         {items.map((item, i) => (
-          <li key={item.id} className="flex items-start gap-3 px-4 py-2.5">
+          <li key={item.id} className="flex flex-wrap items-start gap-x-3 gap-y-1.5 px-4 py-2.5">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[11px] font-semibold text-slate-300">
               {i + 1}
             </span>
@@ -72,8 +72,8 @@ export default function PriorityQueue({
                 <Truck size={14} className="text-sky-400" />
               )}
             </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm text-slate-200 truncate">{item.title}</div>
+            <div className="min-w-0 flex-1 basis-[200px]">
+              <div className="text-sm text-slate-200">{item.title}</div>
               <div className="text-[11px] text-slate-500">{item.subtitle}</div>
             </div>
             <span className="shrink-0 text-[11px] font-medium text-slate-400 mt-0.5">score {item.score}</span>
