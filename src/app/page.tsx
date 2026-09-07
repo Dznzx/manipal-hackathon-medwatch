@@ -11,14 +11,16 @@ import RedistributionPanel from "@/components/RedistributionPanel";
 import SimControls from "@/components/SimControls";
 import PriorityQueue from "@/components/PriorityQueue";
 import RiskTrendChart from "@/components/RiskTrendChart";
-import { generateSituationReport, downloadTextFile } from "@/lib/report";
-import { Activity, Map, AlertTriangle, Truck, ListChecks, FileDown } from "lucide-react";
+import AskMedWatch from "@/components/AskMedWatch";
+import { downloadTextFile } from "@/lib/report";
+import { Activity, Map, AlertTriangle, Truck, ListChecks, FileDown, Loader2 } from "lucide-react";
 
 export default function Home() {
   const [data, setData] = useState<StateResponse | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -57,6 +59,19 @@ export default function Home() {
     },
     []
   );
+
+  const downloadReport = useCallback(async () => {
+    setReportLoading(true);
+    try {
+      const res = await fetch("/api/report", { method: "POST" });
+      const json = await res.json();
+      downloadTextFile(`medwatch-situation-report-day${data?.simDay ?? 0}.txt`, json.report);
+    } catch {
+      setError("Couldn't generate the report. Retry in a moment.");
+    } finally {
+      setReportLoading(false);
+    }
+  }, [data]);
 
   if (error && !data) {
     return (
@@ -108,11 +123,12 @@ export default function Home() {
             {criticalCount} critical stock{criticalCount === 1 ? "" : "s"}
           </span>
           <button
-            onClick={() => downloadTextFile(`medwatch-situation-report-day${data.simDay}.txt`, generateSituationReport(data))}
-            className="flex items-center gap-1.5 rounded-full bg-slate-800 hover:bg-slate-700 px-2.5 py-1 font-medium text-slate-300"
+            onClick={downloadReport}
+            disabled={reportLoading}
+            className="flex items-center gap-1.5 rounded-full bg-slate-800 hover:bg-slate-700 disabled:opacity-60 px-2.5 py-1 font-medium text-slate-300"
           >
-            <FileDown size={13} />
-            Situation report
+            {reportLoading ? <Loader2 size={13} className="animate-spin" /> : <FileDown size={13} />}
+            AI situation report
           </button>
         </div>
       </header>
@@ -126,7 +142,10 @@ export default function Home() {
 
       <RiskTrendChart trend={data.riskTrend} currentDay={data.simDay} />
 
-      <PriorityQueue risks={data.regionalRisks} suggestions={data.suggestions} />
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-4">
+        <PriorityQueue risks={data.regionalRisks} suggestions={data.suggestions} />
+        <AskMedWatch />
+      </div>
 
       <div className={`grid grid-cols-1 lg:grid-cols-[1.3fr_1fr_1fr] gap-4 flex-1 min-h-0 transition-opacity ${loading ? "opacity-60" : ""}`}>
         <div className="flex flex-col gap-4 min-h-0">
