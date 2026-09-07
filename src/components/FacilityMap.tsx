@@ -19,13 +19,36 @@ interface Props {
 }
 
 const VIEW = 100;
-const PAD = 10;
+const PAD = 14;
+
+// Simple equirectangular projection of real lat/lng onto the SVG plane — fine
+// at this scale (a single district), and keeps the map dependency-free per the
+// hackathon's scope guard against needing real GIS/map tiles.
+function useProjection(facilities: Facility[]) {
+  const lats = facilities.map((f) => f.lat);
+  const lngs = facilities.map((f) => f.lng);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+  const latSpan = maxLat - minLat || 1;
+  const lngSpan = maxLng - minLng || 1;
+  const span = Math.max(latSpan, lngSpan);
+
+  return (f: { lat: number; lng: number }) => ({
+    x: PAD + ((f.lng - minLng) / span) * (VIEW - PAD * 2),
+    y: PAD + ((maxLat - f.lat) / span) * (VIEW - PAD * 2), // flip: higher lat = further up
+  });
+}
 
 export default function FacilityMap({ facilities, forecasts, selectedId, onSelect, regionalClusterIds, suggestions = [] }: Props) {
-  const clusters = new Map<string, { name: string; points: Facility[] }>();
+  const project = useProjection(facilities);
+  const positions = new Map(facilities.map((f) => [f.id, project(f)]));
+
+  const clusters = new Map<string, { name: string; points: { x: number; y: number }[] }>();
   for (const f of facilities) {
     if (!clusters.has(f.clusterId)) clusters.set(f.clusterId, { name: f.clusterName, points: [] });
-    clusters.get(f.clusterId)!.points.push(f);
+    clusters.get(f.clusterId)!.points.push(positions.get(f.id)!);
   }
   const facilityById = new Map(facilities.map((f) => [f.id, f]));
 
@@ -71,8 +94,8 @@ export default function FacilityMap({ facilities, forecasts, selectedId, onSelec
       })}
 
       {suggestions.map((s) => {
-        const from = facilityById.get(s.fromFacilityId);
-        const to = facilityById.get(s.toFacilityId);
+        const from = positions.get(s.fromFacilityId);
+        const to = positions.get(s.toFacilityId);
         if (!from || !to) return null;
         return (
           <line
@@ -93,21 +116,21 @@ export default function FacilityMap({ facilities, forecasts, selectedId, onSelec
       {facilities.map((f) => {
         const fcs = forecasts.filter((fc) => fc.facilityId === f.id);
         const status = worstStatus(fcs);
-        const colors = STATUS_COLORS[status];
         const isSelected = selectedId === f.id;
         const rgb = { critical: "#ef4444", "at-risk": "#f97316", watch: "#fbbf24", healthy: "#10b981" }[status];
+        const { x, y } = positions.get(f.id)!;
         return (
           <g key={f.id} onClick={() => onSelect(f.id)} className="cursor-pointer">
-            {isSelected && <circle cx={f.x} cy={f.y} r={4.5} fill="none" stroke={rgb} strokeWidth={0.5} opacity={0.6} />}
+            {isSelected && <circle cx={x} cy={y} r={4.5} fill="none" stroke={rgb} strokeWidth={0.5} opacity={0.6} />}
             {(status === "critical" || status === "at-risk") && (
-              <circle cx={f.x} cy={f.y} r={2.6} fill={rgb} opacity={0.25}>
+              <circle cx={x} cy={y} r={2.6} fill={rgb} opacity={0.25}>
                 <animate attributeName="r" values="2.6;4.5;2.6" dur="2s" repeatCount="indefinite" />
                 <animate attributeName="opacity" values="0.3;0;0.3" dur="2s" repeatCount="indefinite" />
               </circle>
             )}
-            <circle cx={f.x} cy={f.y} r={2} fill={rgb} stroke="#0f172a" strokeWidth={0.4} />
-            <text x={f.x} y={f.y - 3} fontSize={2.6} textAnchor="middle" fill="#cbd5e1" className="select-none">
-              {f.name.split(" ")[0]}
+            <circle cx={x} cy={y} r={2} fill={rgb} stroke="#0f172a" strokeWidth={0.4} />
+            <text x={x} y={y - 3} fontSize={2.6} textAnchor="middle" fill="#cbd5e1" className="select-none">
+              {f.name.split(" ")[0].replace(",", "")}
             </text>
           </g>
         );

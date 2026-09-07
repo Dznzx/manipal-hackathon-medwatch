@@ -2,7 +2,7 @@ import { Facility, Medicine, StockRecord, WorldState, ConsumptionDay } from "./t
 import { mulberry32, gaussian, randRange, randInt, RandFn } from "./rng";
 
 export const HISTORY_DAYS = 21;
-export const DEFAULT_SEED = 42;
+export const DEFAULT_SEED = 2024;
 
 export const MEDICINES: Medicine[] = [
   { id: "amox", name: "Amoxicillin 500mg", unit: "strips", criticality: "high" },
@@ -16,31 +16,35 @@ interface FacilityDef {
   id: string;
   name: string;
   type: Facility["type"];
-  x: number;
-  y: number;
+  lat: number;
+  lng: number;
   clusterId: string;
   clusterName: string;
 }
 
-// Coordinates are on a synthetic 0-100 plane (roughly km-equivalent) so distance
-// math is simple, but the layout is composed to read as 3 real geographic clusters.
+// Real government health facilities in Udupi district, Karnataka — names and
+// GPS coordinates sourced from OpenStreetMap (queried via the public Overpass
+// API), grouped by their real taluk (sub-district). Facility *identities and
+// locations* are real; stock levels and consumption below are simulated, since
+// granular per-facility inventory data isn't publicly available anywhere —
+// exactly the kind of data the problem statement explicitly allows simulating.
 export const FACILITIES: FacilityDef[] = [
-  // North Region cluster -- this is where the "regional shortage" narrative lives
-  { id: "f1", name: "Udupi PHC", type: "PHC", x: 20, y: 78, clusterId: "north", clusterName: "North Region" },
-  { id: "f2", name: "Kaup CHC", type: "CHC", x: 27, y: 82, clusterId: "north", clusterName: "North Region" },
-  { id: "f3", name: "Brahmavar District Hospital", type: "District Hospital", x: 24, y: 70, clusterId: "north", clusterName: "North Region" },
-  { id: "f4", name: "Kundapura PHC", type: "PHC", x: 15, y: 88, clusterId: "north", clusterName: "North Region" },
+  // Kundapura taluk -- this is where the "regional shortage" narrative lives
+  { id: "u1", name: "Kundapur Government Hospital", type: "CHC", lat: 13.629259, lng: 74.691012, clusterId: "kundapura", clusterName: "Kundapura Taluk" },
+  { id: "u2", name: "PHC Hattiangadi", type: "PHC", lat: 13.6579769, lng: 74.7257812, clusterId: "kundapura", clusterName: "Kundapura Taluk" },
+  { id: "u3", name: "Government Hospital, Basroor", type: "PHC", lat: 13.631449, lng: 74.739063, clusterId: "kundapura", clusterName: "Kundapura Taluk" },
+  { id: "u4", name: "Government Hospital, Halady", type: "PHC", lat: 13.5786896, lng: 74.8643722, clusterId: "kundapura", clusterName: "Kundapura Taluk" },
 
-  // East Region cluster -- one isolated stockout here, should NOT be flagged regional
-  { id: "f5", name: "Karkala CHC", type: "CHC", x: 62, y: 40, clusterId: "east", clusterName: "East Region" },
-  { id: "f6", name: "Hebri PHC", type: "PHC", x: 70, y: 35, clusterId: "east", clusterName: "East Region" },
-  { id: "f7", name: "Shivamogga District Hospital", type: "District Hospital", x: 68, y: 48, clusterId: "east", clusterName: "East Region" },
+  // Udupi taluk -- one isolated stockout here, should NOT be flagged regional
+  { id: "u5", name: "District Hospital, Udupi", type: "District Hospital", lat: 13.3340175, lng: 74.7423038, clusterId: "udupi", clusterName: "Udupi Taluk" },
+  { id: "u6", name: "Government Hospital, Mandarthi", type: "PHC", lat: 13.495691, lng: 74.810086, clusterId: "udupi", clusterName: "Udupi Taluk" },
+  { id: "u7", name: "Government Hospital, Pethri", type: "PHC", lat: 13.4217895, lng: 74.8243893, clusterId: "udupi", clusterName: "Udupi Taluk" },
+  { id: "u8", name: "Govt. Hospital, Hebri", type: "CHC", lat: 13.4573188, lng: 74.9917263, clusterId: "udupi", clusterName: "Udupi Taluk" },
 
-  // South Region cluster -- mostly healthy, holds surplus for redistribution
-  { id: "f8", name: "Mangalore District Hospital", type: "District Hospital", x: 45, y: 15, clusterId: "south", clusterName: "South Region" },
-  { id: "f9", name: "Bantwal PHC", type: "PHC", x: 52, y: 22, clusterId: "south", clusterName: "South Region" },
-  { id: "f10", name: "Puttur CHC", type: "CHC", x: 40, y: 25, clusterId: "south", clusterName: "South Region" },
-  { id: "f11", name: "Moodbidri PHC", type: "PHC", x: 48, y: 10, clusterId: "south", clusterName: "South Region" },
+  // Karkala taluk -- mostly healthy, holds surplus for redistribution
+  { id: "u9", name: "Karkala Government Hospital", type: "CHC", lat: 13.2111087, lng: 75.0008586, clusterId: "karkala", clusterName: "Karkala Taluk" },
+  { id: "u10", name: "CHC Mudbidri", type: "CHC", lat: 13.0662337, lng: 74.9956362, clusterId: "karkala", clusterName: "Karkala Taluk" },
+  { id: "u11", name: "Government Hospital, Nitte", type: "PHC", lat: 13.186855, lng: 74.938596, clusterId: "karkala", clusterName: "Karkala Taluk" },
 ];
 
 export function buildFacilities(): Facility[] {
@@ -69,24 +73,24 @@ interface ScenarioSpec {
 // Hand-authored scenarios carry the demo narrative reliably; every facility/medicine
 // pair not listed here gets a generic "healthy" filler so the dataset feels complete.
 const SCENARIOS: ScenarioSpec[] = [
-  // --- North Region: Amoxicillin declining at 3 of 4 facilities => regional risk ---
-  { facilityId: "f1", medicineId: "amox", scenario: "regional-decline", startStock: 140, baseConsumption: 9.5, noiseStdDev: 1.8, leadTime: 7, reorderLevel: 60 },
-  { facilityId: "f2", medicineId: "amox", scenario: "regional-decline", startStock: 110, baseConsumption: 9.6, noiseStdDev: 1.5, leadTime: 6, reorderLevel: 50 },
-  { facilityId: "f3", medicineId: "amox", scenario: "regional-decline", startStock: 200, baseConsumption: 14, noiseStdDev: 2.2, leadTime: 8, reorderLevel: 80 },
-  { facilityId: "f4", medicineId: "amox", scenario: "surplus", startStock: 260, baseConsumption: 4, noiseStdDev: 0.8, leadTime: 5, reorderLevel: 60 },
+  // --- Kundapura taluk: Amoxicillin declining at 3 of 4 facilities => regional risk ---
+  { facilityId: "u1", medicineId: "amox", scenario: "regional-decline", startStock: 140, baseConsumption: 9.5, noiseStdDev: 1.8, leadTime: 7, reorderLevel: 60 },
+  { facilityId: "u2", medicineId: "amox", scenario: "regional-decline", startStock: 110, baseConsumption: 9.6, noiseStdDev: 1.5, leadTime: 6, reorderLevel: 50 },
+  { facilityId: "u3", medicineId: "amox", scenario: "regional-decline", startStock: 200, baseConsumption: 14, noiseStdDev: 2.2, leadTime: 8, reorderLevel: 80 },
+  { facilityId: "u4", medicineId: "amox", scenario: "surplus", startStock: 260, baseConsumption: 4, noiseStdDev: 0.8, leadTime: 5, reorderLevel: 60 },
 
-  // --- East Region: Insulin isolated stockout at one facility only ---
-  { facilityId: "f5", medicineId: "insu", scenario: "isolated-decline", startStock: 45, baseConsumption: 4.2, noiseStdDev: 0.6, leadTime: 10, reorderLevel: 20 },
-  { facilityId: "f6", medicineId: "insu", scenario: "healthy", startStock: 90, baseConsumption: 2.5, noiseStdDev: 0.5, leadTime: 9, reorderLevel: 25 },
-  { facilityId: "f7", medicineId: "insu", scenario: "healthy", startStock: 130, baseConsumption: 3, noiseStdDev: 0.5, leadTime: 8, reorderLevel: 30 },
+  // --- Udupi taluk: Insulin isolated stockout at one facility only ---
+  { facilityId: "u5", medicineId: "insu", scenario: "isolated-decline", startStock: 45, baseConsumption: 4.2, noiseStdDev: 0.6, leadTime: 10, reorderLevel: 20 },
+  { facilityId: "u6", medicineId: "insu", scenario: "healthy", startStock: 90, baseConsumption: 2.5, noiseStdDev: 0.5, leadTime: 9, reorderLevel: 25 },
+  { facilityId: "u7", medicineId: "insu", scenario: "healthy", startStock: 130, baseConsumption: 3, noiseStdDev: 0.5, leadTime: 8, reorderLevel: 30 },
 
-  // --- South Region: surplus reservoir for redistribution demo ---
-  { facilityId: "f8", medicineId: "amox", scenario: "surplus", startStock: 420, baseConsumption: 5, noiseStdDev: 1, leadTime: 5, reorderLevel: 100 },
-  { facilityId: "f9", medicineId: "amox", scenario: "healthy", startStock: 150, baseConsumption: 6, noiseStdDev: 1.2, leadTime: 6, reorderLevel: 50 },
-  { facilityId: "f10", medicineId: "insu", scenario: "surplus", startStock: 160, baseConsumption: 2, noiseStdDev: 0.4, leadTime: 7, reorderLevel: 30 },
+  // --- Karkala taluk: surplus reservoir for redistribution demo ---
+  { facilityId: "u9", medicineId: "amox", scenario: "surplus", startStock: 420, baseConsumption: 5, noiseStdDev: 1, leadTime: 5, reorderLevel: 100 },
+  { facilityId: "u10", medicineId: "amox", scenario: "healthy", startStock: 150, baseConsumption: 6, noiseStdDev: 1.2, leadTime: 6, reorderLevel: 50 },
+  { facilityId: "u10", medicineId: "insu", scenario: "surplus", startStock: 160, baseConsumption: 2, noiseStdDev: 0.4, leadTime: 7, reorderLevel: 30 },
 
   // --- A low-history / newly onboarded facility-medicine pair -> low confidence forecast ---
-  { facilityId: "f11", medicineId: "para", scenario: "low-history", startStock: 80, baseConsumption: 6, noiseStdDev: 3.5, leadTime: 6, reorderLevel: 40 },
+  { facilityId: "u11", medicineId: "para", scenario: "low-history", startStock: 80, baseConsumption: 6, noiseStdDev: 3.5, leadTime: 6, reorderLevel: 40 },
 ];
 
 function genHistory(rand: RandFn, spec: ScenarioSpec): { history: ConsumptionDay[]; currentStock: number } {

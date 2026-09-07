@@ -8,9 +8,9 @@ export interface Facility {
   id: string;
   name: string;
   type: FacilityType;
-  x: number; // synthetic coordinate, 0-100 grid (used as km-equivalent plane)
-  y: number;
-  clusterId: string; // geographic region grouping
+  lat: number; // real GPS coordinates (source: OpenStreetMap, Udupi district, Karnataka)
+  lng: number;
+  clusterId: string; // real taluk (sub-district) grouping
   clusterName: string;
 }
 

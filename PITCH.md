@@ -32,9 +32,14 @@ no shared view that would let anyone tell the difference in time to act.
   transparent, fast to build, and — critically — *explainable to a health
   official in one sentence*, which a black-box model isn't. Every number in the
   UI has a "Why?" popover showing the actual reasoning.
-- **Simulated data, real structure.** 11 facilities across 3 geographic clusters,
-  5 essential medicines, seeded so the demo is reproducible. The problem
-  statement explicitly allows this for a prototype.
+- **Real facilities, real geography, simulated stock.** The 11 facilities are
+  real government PHCs/CHCs/hospitals in Udupi district, Karnataka, with real
+  GPS coordinates (sourced from OpenStreetMap via the public Overpass API) and
+  real taluk groupings. Distances shown in the UI ("17 km away") are real
+  haversine distances between actual locations. Stock levels and consumption
+  are simulated and clearly labeled as such — granular per-facility inventory
+  data isn't published anywhere publicly, which is exactly the kind of data
+  the problem statement explicitly allows a prototype to simulate.
 - **Never asserts false certainty.** Regional vs. isolated is always framed as a
   risk level with visible evidence (facility count, time-window overlap,
   average forecast confidence) — not a claim.
@@ -47,16 +52,17 @@ explicitly out of scope for a 5-day prototype per the problem statement's
 allowance for simulated data.
 
 ```
-generator.ts        seeded synthetic facilities/medicines/consumption history
+generator.ts        real facility/GPS data + seeded synthetic consumption history
 forecast.ts          weighted moving average -> days-to-stockout + confidence
-clustering.ts        groups by geography + medicine -> isolated / watch / regional
-redistribution.ts    surplus -> at-risk matching, ranked by urgency
+clustering.ts        groups by real taluk + medicine -> isolated / watch / regional
+redistribution.ts    surplus -> at-risk matching (real haversine distance), ranked by urgency
 store.ts             in-memory world state + time-slider projection
 ```
 
 ## Demo script (see VIDEO_SCRIPT.md)
 
-North Region: 3 facilities trending toward an Amoxicillin stockout within days
-of each other → flagged regional. East Region: 1 facility low on Insulin, alone
-→ flagged isolated, correctly not escalated. A nearby facility with Amoxicillin
-surplus gets matched to the at-risk ones, with distance/urgency/reasoning shown.
+Kundapura Taluk: 3 real government facilities trending toward an Amoxicillin
+stockout within days of each other → flagged regional. Udupi Taluk: 1 facility
+low on Insulin, alone → flagged isolated, correctly not escalated. A nearby
+facility with Amoxicillin surplus gets matched to the at-risk ones, with real
+distance/urgency/reasoning shown.

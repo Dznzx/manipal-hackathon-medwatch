@@ -1,7 +1,18 @@
 import { Forecast, RedistributionSuggestion, WorldState } from "./types";
 
-function distance(a: { x: number; y: number }, b: { x: number; y: number }): number {
-  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+const EARTH_RADIUS_KM = 6371;
+
+// Real great-circle distance between two GPS points — facilities now carry
+// real coordinates, so "N km away" in the UI is an actual distance, not a
+// synthetic grid unit.
+function distance(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const h = sinLat * sinLat + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * sinLng * sinLng;
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
 const SURPLUS_STOCKOUT_DAY_THRESHOLD = 60; // "safe enough to lend from" horizon

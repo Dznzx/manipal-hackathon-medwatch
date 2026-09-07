@@ -3,6 +3,10 @@
 Live URL: https://manipal-hackathon-medwatch.vercel.app
 Reset the simulation (button, top right) before recording so you start at Day 0.
 
+Facilities are real government PHCs/CHCs/hospitals in Udupi district,
+Karnataka (real names, real GPS coordinates) — worth saying once in the video,
+it's a stronger claim than "simulated facilities."
+
 ---
 
 ### 0:00–0:20 — The problem (talk over the dashboard, don't click yet)
@@ -11,96 +15,106 @@ Reset the simulation (button, top right) before recording so you start at Day 0.
 > noise — until you notice two or three *nearby* facilities running low on the
 > *same* medicine, at the *same* time. That's not noise, that's an early signal
 > of a regional shortage. MedWatch is built to catch that signal before it
-> becomes a crisis."
+> becomes a crisis — using real facilities from Udupi district, Karnataka."
 
 Screen: full dashboard, day 0, sitting on the home view.
 
 ---
 
-### 0:20–0:50 — Per-facility forecasting + confidence
+### 0:20–0:40 — Priority Action Queue (lead with this — it's the executive summary)
 
-Click **Udupi PHC** in the facility list to open the detail drawer.
+Point at the **Priority Action Queue** panel near the top.
+
+> "At the top, MedWatch gives decision-makers one ranked list — regional alerts
+> and redistribution moves together, sorted by urgency. This is the 'what do I
+> act on today' view."
+
+---
+
+### 0:40–1:05 — Per-facility forecasting + confidence
+
+Click **Kundapur Government Hospital** in the facility list to open the detail drawer.
 
 > "Every facility tracks its own consumption history. For Amoxicillin here,
-> we're projecting 14 days to stockout — and instead of pretending that's
-> exact, we show a confidence score."
+> we're projecting stockout in about a week — and instead of pretending that's
+> exact, we show the uncertainty directly on the chart."
 
-Click **Why?** next to "High confidence" / "confidence" pill on the Amoxicillin card.
+Point at the shaded band on the forecast chart, then click **Why?** on the confidence line.
 
-> "The reasoning is always visible — how much history backs the number, and how
-> consistent consumption has been. This is a judged criterion, not a footnote."
+> "That shaded band is the uncertainty range based on how variable consumption
+> has been. The reasoning behind the confidence score is always one click away
+> — this is a judged criterion, not a footnote."
 
 Close the drawer.
 
 ---
 
-### 0:50–1:30 — Isolated vs. Regional (the core insight)
+### 1:05–1:40 — Isolated vs. Regional (the core insight)
 
-Point at the **Regional Risk Alerts** panel.
+Point at the **Regional Risk Alerts** panel and the map's dashed red region.
 
-> "Here's the core idea. Three facilities in the North Region — Udupi, Kaup,
-> Brahmavar — are all trending toward an Amoxicillin stockout within days of
-> each other. MedWatch flags that as a **Regional Risk**."
+> "Here's the core idea. Three real facilities in Kundapura Taluk — Kundapur
+> Government Hospital, PHC Hattiangadi, and the Basroor government hospital —
+> are all trending toward an Amoxicillin stockout within days of each other.
+> MedWatch flags that as a **Regional Risk**."
 
 Click **Why?** on the Regional Risk card — let the reasoning text show.
 
-> "Compare that to the East Region: one facility, Karkala, is low on Insulin —
-> but nothing nearby corroborates it. MedWatch calls that an **Isolated Event**,
-> explicitly, so we never cry wolf over an ordinary local stock dip."
+> "Compare that to Udupi Taluk: the District Hospital there is low on Insulin
+> alone — nothing nearby corroborates it. MedWatch calls that an **Isolated
+> Event**, explicitly, so we never cry wolf over an ordinary local stock dip."
 
 Point at the isolated-event card.
 
 ---
 
-### 1:30–2:10 — Redistribution recommendations
+### 1:40–2:15 — Redistribution recommendations, visualized
 
-Point at the **Redistribution Suggestions** panel.
+Point at the **Redistribution Suggestions** panel, then at the blue dashed
+arrows connecting facilities on the map.
 
-> "Once a shortage is flagged, the next question is: is there surplus somewhere
-> nearby that could help? MedWatch matches at-risk facilities to the nearest
-> facility with confirmed surplus."
+> "Once a shortage is flagged, MedWatch matches at-risk facilities to the
+> nearest facility with confirmed surplus — and you can see the actual routes
+> on the map, with real distances between real locations."
 
 Click **Why?** on the top suggestion.
 
-> "Every recommendation shows its reasoning — how urgent the recipient is, how
-> much of the gap this shipment actually closes, and distance. Nothing is a
-> black box."
+> "Every recommendation shows its impact: without this transfer, stockout in
+> about ten days; with it, pushed out to thirty. Nothing here is a black box."
 
 ---
 
-### 2:10–2:45 — Watching it spread (the "wow" moment)
+### 2:15–2:40 — Watching it spread + exporting a report
 
-Drag the **Simulate Forward** slider from Day 0 to around Day 10.
+Drag the **Simulate Forward** slider from Day 0 to around Day 8.
 
-> "And because this is time-aware, you can watch a shortage develop. As we move
-> forward, consumption continues, replenishments arrive or don't, and you can
-> see the regional pattern strengthen — or new ones emerge — in real time."
+> "Because this is time-aware, you can watch a shortage develop, or stress-test
+> it with a consumption spike or a delayed shipment and see the system react
+> immediately."
 
-Optionally nudge the **Consumption spike** slider up briefly to show reactivity.
+Reset the slider back to Day 0. Click **Situation report** in the header.
 
-> "We can also stress-test it — simulate a demand spike or a delayed shipment —
-> and watch the system react immediately."
-
-Reset the spike slider back to 1.0x before the next beat (keeps the screen calm).
+> "And because a dashboard alone isn't a deliverable a health official can act
+> on, one click exports a real situation report they could forward or print."
 
 ---
 
-### 2:45–3:00 — Close
+### 2:40–3:00 — Close
 
-> "MedWatch doesn't need a trained model or real-time GPS data to do this — a
-> transparent, explainable heuristic is enough, and it's one a health official
-> can actually trust because they can see the reasoning behind every number.
-> That's the system: detect early, explain clearly, and point at where the
-> surplus already is."
+> "MedWatch doesn't need a trained model to do this — a transparent, explainable
+> heuristic running on real facility locations is enough, and it's one a health
+> official can actually trust because they can see the reasoning behind every
+> number. Detect early, explain clearly, and point at where the surplus already
+> is."
 
-End on the full dashboard view, Day 0 (reset before ending if you moved the slider far).
+End on the full dashboard view, Day 0.
 
 ---
 
 ## Recording tips
 
 - **Reset the simulation before you hit record** — this guarantees the clean
-  Day-0 baseline (1 regional risk, 1 critical stock) shown in the script above.
+  Day-0 baseline (1 regional risk in Kundapura Taluk) shown in the script above.
 - Keep the slider moves in the **Day 0–10 range**. Past ~day 15–20, enough of
   the 55 simulated facility/medicine pairs cross their own routine reorder
   points by chance that extra "regional" flags appear — realistic for a
@@ -109,3 +123,8 @@ End on the full dashboard view, Day 0 (reset before ending if you moved the slid
 - If a "Why?" popover doesn't close between clicks, click anywhere blank on the
   panel first — it's a click-outside-to-close toggle.
 - Full screen the browser (hide the URL bar) for a cleaner recording.
+- If judges ask "is this real data?" in Q&A: facility names, types, and GPS
+  locations are real (Udupi district, Karnataka, sourced from OpenStreetMap).
+  Stock levels and consumption are simulated, because no public dataset
+  publishes real per-facility inventory — say this plainly, it's more credible
+  than overclaiming.
