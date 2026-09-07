@@ -97,3 +97,10 @@ export interface SimParams {
   consumptionSpikeMultiplier: number; // 1 = normal
   replenishmentDelayDays: number; // extra delay added to all pending replenishments
 }
+
+export interface RiskTrendPoint {
+  day: number;
+  regionalCount: number;
+  isolatedCount: number;
+  atRiskFacilityCount: number; // count of facility/medicine pairs at critical or at-risk
+}

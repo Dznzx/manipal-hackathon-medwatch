@@ -1,4 +1,4 @@
-import { Facility, Medicine, StockRecord, Forecast, RegionalRisk, RedistributionSuggestion, SimParams } from "./types";
+import { Facility, Medicine, StockRecord, Forecast, RegionalRisk, RedistributionSuggestion, SimParams, RiskTrendPoint } from "./types";
 
 export interface StateResponse {
   facilities: Facility[];
@@ -9,4 +9,5 @@ export interface StateResponse {
   forecasts: Forecast[];
   regionalRisks: RegionalRisk[];
   suggestions: RedistributionSuggestion[];
+  riskTrend: RiskTrendPoint[];
 }

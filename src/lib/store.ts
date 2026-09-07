@@ -94,6 +94,17 @@ export function getWorld(): WorldState {
   return { ...state.baseWorld, stock, simDay: state.simDay };
 }
 
+// Projects the world at an arbitrary day without touching the stored simDay —
+// used to compute a risk trend across a range of days (e.g. for a "how this
+// develops over time" chart) without disturbing whatever day the UI is
+// currently showing. Uses the current simParams so a stress-test (spike/delay)
+// is reflected in the projected trend too.
+export function getWorldAtDay(day: number): WorldState {
+  const state = getAppState();
+  const stock = state.baseWorld.stock.map((r) => projectStock(r, day, state.simParams));
+  return { ...state.baseWorld, stock, simDay: day };
+}
+
 export function getSimParams(): SimParams {
   return { ...getAppState().simParams };
 }

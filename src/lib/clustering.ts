@@ -58,6 +58,21 @@ export function computeRegionalRisks(world: WorldState, forecasts: Forecast[]): 
       reasoning.push(
         `${atRisk.length} facilities in ${key.clusterName} are all trending toward a ${key.medicineName} stockout within a ${spread.toFixed(0)}-day window of each other (day ${minDay} to day ${maxDay}) — this looks like a shared supply/demand pattern, not coincidence.`
       );
+
+      // Root-cause hint: a rough demand-vs-supply read using the trend field
+      // each forecast already carries. Worsening consumption across most of
+      // the group points at a shared demand shock; stable consumption with
+      // the same shortfall points at chronically tight supply instead.
+      const worseningCount = atRisk.filter((f) => f.trend === "worsening").length;
+      if (worseningCount >= Math.ceil(atRisk.length * 0.6)) {
+        reasoning.push(
+          `Likely driver: demand-side. Consumption is actively trending upward at ${worseningCount}/${atRisk.length} of these facilities — consistent with a shared demand shock (e.g. a seasonal illness surge) rather than a one-off supply delay.`
+        );
+      } else {
+        reasoning.push(
+          `Likely driver: supply-side. Consumption at these facilities is largely stable, not spiking — the shared risk looks more like chronically thin buffers relative to replenishment lead time than a sudden demand surge.`
+        );
+      }
     } else if (atRisk.length >= 2) {
       riskLevel = "watch";
       reasoning.push(

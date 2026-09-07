@@ -1,8 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getWorld, getSimParams, setSimParams, setSimDay, resetWorld } from "@/lib/store";
+import { getWorld, getWorldAtDay, getSimParams, setSimParams, setSimDay, resetWorld } from "@/lib/store";
 import { computeAllForecasts } from "@/lib/forecast";
 import { computeRegionalRisks } from "@/lib/clustering";
 import { computeRedistributionSuggestions } from "@/lib/redistribution";
+import { RiskTrendPoint } from "@/lib/types";
+
+const TREND_HORIZON_DAYS = 20;
+
+// Projects risk forward across a fixed horizon (independent of whatever day the
+// UI is currently showing) so the dashboard can chart how today's local signal
+// could develop into a wider one — the problem statement's central framing —
+// without anyone needing to manually drag the time-slider to see it.
+function computeRiskTrend(): RiskTrendPoint[] {
+  const points: RiskTrendPoint[] = [];
+  for (let day = 0; day <= TREND_HORIZON_DAYS; day++) {
+    const world = getWorldAtDay(day);
+    const forecasts = computeAllForecasts(world);
+    const risks = computeRegionalRisks(world, forecasts);
+    points.push({
+      day,
+      regionalCount: risks.filter((r) => r.riskLevel === "regional").length,
+      isolatedCount: risks.filter((r) => r.riskLevel === "isolated").length,
+      atRiskFacilityCount: forecasts.filter((f) => f.status === "critical" || f.status === "at-risk").length,
+    });
+  }
+  return points;
+}
 
 function buildResponse() {
   const world = getWorld();
@@ -10,6 +33,7 @@ function buildResponse() {
   const regionalRisks = computeRegionalRisks(world, forecasts);
   const suggestions = computeRedistributionSuggestions(world, forecasts);
   const simParams = getSimParams();
+  const riskTrend = computeRiskTrend();
 
   return {
     facilities: world.facilities,
@@ -20,6 +44,7 @@ function buildResponse() {
     forecasts,
     regionalRisks,
     suggestions,
+    riskTrend,
   };
 }
 

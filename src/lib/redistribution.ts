@@ -107,7 +107,7 @@ export function computeRedistributionSuggestions(
 
       const reasoning = [
         `${recipientFacility.name} is projected to run out of ${medicine.name} in ${recipient.daysToStockout} day(s) (status: ${recipient.status}), which is inside or near its own ${recipientRecord.replenishmentLeadTimeDays}-day replenishment lead time — a routine reorder may not arrive in time.`,
-        `${best.donorFacility.name} is the nearest facility with confirmed surplus: ${best.surplusAvailable} ${medicine.unit} above its own safety buffer, ${best.dist.toFixed(0)} distance-units away.`,
+        `${best.donorFacility.name} is the nearest facility with confirmed surplus: ${best.surplusAvailable} ${medicine.unit} above its own safety buffer, ${best.dist.toFixed(0)} km away.`,
         `Suggested transfer of ${suggestedQuantity} ${medicine.unit} covers ${Math.round((suggestedQuantity / neededQty) * 100)}% of the recipient's gap to a ${targetCoverDays}-day safety cover.`,
         `Without this transfer: stockout in ${withoutTransferDays} day(s). With it: pushed to ~${withTransferDays} day(s) — ${extraDaysGained} extra day(s) of cover.`,
         `Urgency score ${urgencyScore}/100 = 50% recipient urgency + 30% how fully this shipment covers the gap + 20% proximity.`,

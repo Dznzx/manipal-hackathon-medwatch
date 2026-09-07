@@ -10,6 +10,7 @@ import RegionalRiskPanel from "@/components/RegionalRiskPanel";
 import RedistributionPanel from "@/components/RedistributionPanel";
 import SimControls from "@/components/SimControls";
 import PriorityQueue from "@/components/PriorityQueue";
+import RiskTrendChart from "@/components/RiskTrendChart";
 import { generateSituationReport, downloadTextFile } from "@/lib/report";
 import { Activity, Map, AlertTriangle, Truck, ListChecks, FileDown } from "lucide-react";
 
@@ -122,6 +123,8 @@ export default function Home() {
         onChange={(patch) => update(patch)}
         onReset={() => update({ reset: true })}
       />
+
+      <RiskTrendChart trend={data.riskTrend} currentDay={data.simDay} />
 
       <PriorityQueue risks={data.regionalRisks} suggestions={data.suggestions} />
 
