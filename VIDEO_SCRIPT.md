@@ -100,28 +100,31 @@ Click **Why?** on the top suggestion.
 
 ---
 
-### 2:15–2:40 — Watching it spread + exporting a report
+### 2:15–2:40 — Ask MedWatch (the AI layer)
 
-Drag the **Simulate Forward** slider from Day 0 to around Day 8.
+Click one of the suggested questions in the **Ask MedWatch** panel (e.g. "Why is
+Kundapura Taluk flagged as a regional risk?").
 
-> "Because this is time-aware, you can watch a shortage develop, or stress-test
-> it with a consumption spike or a delayed shipment and see the system react
-> immediately."
+> "There's a real AI layer here too — but it's grounded strictly in the numbers
+> the heuristic engine already computed. It can't invent a facility or a
+> number that isn't in the data. That's deliberate: the AI explains and
+> narrates, it doesn't replace the transparent reasoning underneath it."
 
-Reset the slider back to Day 0. Click **Situation report** in the header.
+Click **AI situation report** in the header once the answer appears.
 
 > "And because a dashboard alone isn't a deliverable a health official can act
-> on, one click exports a real situation report they could forward or print."
+> on, one click turns the same grounded data into a real, readable situation
+> report they could forward or print."
 
 ---
 
 ### 2:40–3:00 — Close
 
-> "MedWatch doesn't need a trained model to do this — a transparent, explainable
-> heuristic running on real facility locations is enough, and it's one a health
-> official can actually trust because they can see the reasoning behind every
-> number. Detect early, explain clearly, and point at where the surplus already
-> is."
+> "The core detection — forecasts, regional-vs-isolated, redistribution — is a
+> transparent heuristic engine, not a black-box model, so every number is
+> explainable. AI sits on top of that as a natural-language layer, not as a
+> replacement for it. Detect early, explain clearly, and point at where the
+> surplus already is."
 
 End on the full dashboard view, Day 0.
 

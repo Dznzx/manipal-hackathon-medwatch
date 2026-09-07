@@ -24,14 +24,25 @@ no shared view that would let anyone tell the difference in time to act.
    shipment closes + proximity), with the reasoning always visible.
 4. **Simulates forward in time** — a slider lets you watch a shortage emerge day
    by day, and sliders for consumption spikes / replenishment delays let you
-   stress-test the system live.
+   stress-test the system live. A **Projected Risk Trend** chart shows this
+   automatically: how today's regional-risk count would develop over the next
+   20 days if nothing changes.
+5. **Answers questions in plain English** — "Ask MedWatch" is a real LLM (Groq)
+   layered on top of the engine, grounded strictly in the current computed
+   data. It explains and narrates; it never computes a risk number itself, so
+   it can't hallucinate a stockout that isn't there. The same grounding
+   powers a one-click AI-written situation report.
 
 ## Why this approach
 
-- **No ML model.** A weighted moving average + heuristic confidence score is
-  transparent, fast to build, and — critically — *explainable to a health
-  official in one sentence*, which a black-box model isn't. Every number in the
-  UI has a "Why?" popover showing the actual reasoning.
+- **No ML model for the core detection.** A weighted moving average + heuristic
+  confidence score is transparent, fast to build, and — critically —
+  *explainable to a health official in one sentence*, which a black-box model
+  isn't. Every number in the UI has a "Why?" popover showing the actual
+  reasoning. AI (an LLM) is used deliberately as a layer *on top* of this —
+  for natural-language Q&A and report writing — never to compute the risk
+  numbers themselves. That split is the point: real AI, without giving up
+  auditability.
 - **Real facilities, real geography, simulated stock.** The 11 facilities are
   real government PHCs/CHCs/hospitals in Udupi district, Karnataka, with real
   GPS coordinates (sourced from OpenStreetMap via the public Overpass API) and
@@ -57,6 +68,8 @@ forecast.ts          weighted moving average -> days-to-stockout + confidence
 clustering.ts        groups by real taluk + medicine -> isolated / watch / regional
 redistribution.ts    surplus -> at-risk matching (real haversine distance), ranked by urgency
 store.ts             in-memory world state + time-slider projection
+ai-context.ts        serializes the computed state into grounding text for the LLM
+groq.ts              thin wrapper around Groq's chat completions API (openai/gpt-oss-120b)
 ```
 
 ## Demo script (see VIDEO_SCRIPT.md)
