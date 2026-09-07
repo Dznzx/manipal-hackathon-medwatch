@@ -21,7 +21,18 @@ Screen: full dashboard, day 0, sitting on the home view.
 
 ---
 
-### 0:20–0:40 — Priority Action Queue (lead with this — it's the executive summary)
+### 0:20–0:35 — The Risk Trend chart (new headline visual — lead with this)
+
+Point at the **Projected Risk Trend** chart right under the sliders.
+
+> "This curve is the whole idea in one picture — it projects how today's
+> regional risk count would develop over the next 20 days if nothing is done.
+> A local signal doesn't stay local; it can compound. That's what this system
+> is built to catch early."
+
+---
+
+### 0:35–0:50 — Priority Action Queue
 
 Point at the **Priority Action Queue** panel near the top.
 
@@ -31,7 +42,7 @@ Point at the **Priority Action Queue** panel near the top.
 
 ---
 
-### 0:40–1:05 — Per-facility forecasting + confidence
+### 0:50–1:10 — Per-facility forecasting + confidence
 
 Click **Kundapur Government Hospital** in the facility list to open the detail drawer.
 
@@ -49,22 +60,27 @@ Close the drawer.
 
 ---
 
-### 1:05–1:40 — Isolated vs. Regional (the core insight)
+### 1:10–1:40 — Isolated vs. Regional, and why it's happening
 
 Point at the **Regional Risk Alerts** panel and the map's dashed red region.
 
-> "Here's the core idea. Three real facilities in Kundapura Taluk — Kundapur
-> Government Hospital, PHC Hattiangadi, and the Basroor government hospital —
-> are all trending toward an Amoxicillin stockout within days of each other.
-> MedWatch flags that as a **Regional Risk**."
+> "Here's the core idea. Two real facilities in Kundapura Taluk — PHC
+> Hattiangadi and the Basroor government hospital — are trending toward an
+> Amoxicillin stockout within days of each other. MedWatch flags that as a
+> **Regional Risk**."
 
-Click **Why?** on the Regional Risk card — let the reasoning text show.
+Click **Why?** on the Regional Risk card — let the reasoning text show, including the demand-vs-supply line.
 
-> "Compare that to Udupi Taluk: the District Hospital there is low on Insulin
-> alone — nothing nearby corroborates it. MedWatch calls that an **Isolated
-> Event**, explicitly, so we never cry wolf over an ordinary local stock dip."
+> "It doesn't stop at 'these look correlated' — it also reads whether this is
+> demand-driven, like a seasonal illness surge, or supply-side, like
+> chronically thin buffers. That distinction changes what a health official
+> should actually do about it."
 
-Point at the isolated-event card.
+Point at the isolated-event card (Udupi Taluk / Insulin).
+
+> "Compare that to Udupi Taluk: one facility, low on Insulin, alone — nothing
+> nearby corroborates it. MedWatch calls that an **Isolated Event**, so we
+> never cry wolf over an ordinary local stock dip."
 
 ---
 
