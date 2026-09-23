@@ -12,7 +12,7 @@ A single facility running low on a medicine can look like routine inventory nois
 
 - Per-facility, per-medicine depletion forecasts with a confidence score and plain-English reasoning
 - Regional clustering: "Isolated Event" vs. "Regional Risk", with a demand-side vs. supply-side root-cause read
-- A 20-day Projected Risk Trend chart showing how today's signal could develop
+- A 45-day Projected Risk Trend chart showing how today's signal could develop
 - Surplus → at-risk redistribution matching, ranked by urgency, with a before/after impact preview
 - A Priority Action Queue merging every signal into one ranked list
 - "Ask MedWatch" — an LLM chat layer grounded strictly in the computed data (never invents numbers)
