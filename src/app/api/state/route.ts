@@ -5,7 +5,11 @@ import { computeRegionalRisks } from "@/lib/clustering";
 import { computeRedistributionSuggestions } from "@/lib/redistribution";
 import { RiskTrendPoint } from "@/lib/types";
 
-const TREND_HORIZON_DAYS = 20;
+// Must match SimControls' time-slider `max` (0-45): the trend chart draws a
+// "current day" reference marker at the live simDay, and if the horizon here
+// were shorter than the slider's range, that marker would silently fall
+// outside the chart's data and stop rendering once the slider passed it.
+const TREND_HORIZON_DAYS = 45;
 
 // Projects risk forward across a fixed horizon (independent of whatever day the
 // UI is currently showing) so the dashboard can chart how today's local signal

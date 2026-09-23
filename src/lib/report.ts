@@ -32,6 +32,18 @@ export function generateSituationReport(data: StateResponse): string {
     }
   }
 
+  if (watch.length > 0) {
+    lines.push("EMERGING PATTERNS (multiple facilities, timing not yet correlated)");
+    lines.push("-".repeat(60));
+    for (const r of watch) {
+      lines.push(`* ${r.medicineName} — ${r.clusterName} (score ${r.score}/100)`);
+      for (const f of r.facilitiesAtRisk) {
+        lines.push(`    - ${f.facilityName}: stockout projected in ${f.daysToStockout} day(s)`);
+      }
+    }
+    lines.push("");
+  }
+
   if (isolated.length > 0) {
     lines.push("ISOLATED EVENTS (single facility, no corroborating pattern)");
     lines.push("-".repeat(60));

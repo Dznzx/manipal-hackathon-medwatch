@@ -21,6 +21,23 @@ interface Props {
 const VIEW = 100;
 const PAD = 14;
 
+// Generic words that show up in most facility names ("Government Hospital",
+// "PHC", "CHC", "Govt.") and so make useless, non-distinctive map labels —
+// several facilities would otherwise all render the literal label "Government".
+// Prefer the place name after a comma ("Government Hospital, Basroor" -> "Basroor");
+// otherwise fall back to the first non-generic word.
+const GENERIC_NAME_WORDS = new Set(["government", "hospital", "phc", "chc", "govt.", "govt", "district"]);
+
+function shortFacilityLabel(name: string): string {
+  if (name.includes(",")) {
+    const afterComma = name.split(",").pop()!.trim();
+    if (afterComma) return afterComma;
+  }
+  const words = name.split(" ").filter(Boolean);
+  const distinctive = words.find((w) => !GENERIC_NAME_WORDS.has(w.toLowerCase().replace(",", "")));
+  return distinctive ?? words[0] ?? name;
+}
+
 // Simple equirectangular projection of real lat/lng onto the SVG plane — fine
 // at this scale (a single district), and keeps the map dependency-free per the
 // hackathon's scope guard against needing real GIS/map tiles.
@@ -118,7 +135,21 @@ export default function FacilityMap({ facilities, forecasts, selectedId, onSelec
         const rgb = { critical: "#ef4444", "at-risk": "#f97316", watch: "#fbbf24", healthy: "#10b981" }[status];
         const { x, y } = positions.get(f.id)!;
         return (
-          <g key={f.id} onClick={() => onSelect(f.id)} className="cursor-pointer">
+          <g
+            key={f.id}
+            onClick={() => onSelect(f.id)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(f.id);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={`${f.name} — ${status}`}
+            className="cursor-pointer focus:outline-none"
+          >
+            <title>{`${f.name} (${status})`}</title>
             {isSelected && <circle cx={x} cy={y} r={4.5} fill="none" stroke={rgb} strokeWidth={0.5} opacity={0.6} />}
             {(status === "critical" || status === "at-risk") && (
               <circle cx={x} cy={y} r={2.6} fill={rgb} opacity={0.25}>
@@ -128,7 +159,7 @@ export default function FacilityMap({ facilities, forecasts, selectedId, onSelec
             )}
             <circle cx={x} cy={y} r={2} fill={rgb} stroke="#0f172a" strokeWidth={0.4} />
             <text x={x} y={y - 3} fontSize={2.6} textAnchor="middle" fill="#cbd5e1" className="select-none">
-              {f.name.split(" ")[0].replace(",", "")}
+              {shortFacilityLabel(f.name)}
             </text>
           </g>
         );

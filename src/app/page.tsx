@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StateResponse } from "@/lib/api-types";
 import Panel from "@/components/Panel";
 import FacilityMap from "@/components/FacilityMap";
@@ -21,6 +21,12 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
+  // Guards against out-of-order responses: dragging the time-slider or a
+  // stress-test slider can fire several overlapping POST /api/state requests,
+  // and network timing doesn't guarantee they resolve in the order they were
+  // sent. Without this, an older response landing after a newer one would
+  // silently roll the dashboard back to a stale day/parameter set.
+  const requestSeq = useRef(0);
 
   const load = useCallback(async () => {
     try {
@@ -44,6 +50,7 @@ export default function Home() {
 
   const update = useCallback(
     async (patch: object) => {
+      const seq = ++requestSeq.current;
       setLoading(true);
       try {
         const res = await fetch("/api/state", {
@@ -53,12 +60,16 @@ export default function Home() {
         });
         if (!res.ok) throw new Error(`Request failed (${res.status})`);
         const json: StateResponse = await res.json();
+        // Drop this response if a newer request has since been fired —
+        // otherwise a slow/out-of-order reply could overwrite fresher state.
+        if (seq !== requestSeq.current) return;
         setData(json);
         setError(null);
       } catch {
+        if (seq !== requestSeq.current) return;
         setError("Couldn't apply that change. Retry in a moment.");
       } finally {
-        setLoading(false);
+        if (seq === requestSeq.current) setLoading(false);
       }
     },
     []
@@ -111,9 +122,9 @@ export default function Home() {
       {error && (
         <div className="rounded-md bg-red-500/10 border border-red-500/30 text-red-300 text-xs px-3 py-2">{error}</div>
       )}
-      <header className="flex items-center justify-between">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-sky-500/15 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-lg bg-sky-500/15 flex items-center justify-center shrink-0">
             <Activity size={17} className="text-sky-400" />
           </div>
           <div>
@@ -121,7 +132,7 @@ export default function Home() {
             <p className="text-[11px] text-slate-500 leading-tight">Regional medicine shortage early warning</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
           <span className={`rounded-full px-2.5 py-1 font-medium ${regionalCount > 0 ? "bg-red-500/10 text-red-300" : "bg-slate-800 text-slate-400"}`}>
             {regionalCount} regional risk{regionalCount === 1 ? "" : "s"}
           </span>

@@ -11,8 +11,15 @@ export default function WhyPopover({ title, lines }: { title: string; lines: str
     function onClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, []);
 
   return (
@@ -24,6 +31,8 @@ export default function WhyPopover({ title, lines }: { title: string; lines: str
         }}
         className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition-colors"
         type="button"
+        aria-expanded={open}
+        aria-label={`${title} — why?`}
       >
         <HelpCircle size={13} />
         <span className="underline decoration-dotted underline-offset-2">Why?</span>

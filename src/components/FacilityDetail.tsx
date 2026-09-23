@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Facility, Forecast, Medicine, StockRecord } from "@/lib/types";
 import { STATUS_COLORS, confidenceLabel } from "@/lib/ui";
 import StatusPill from "./StatusPill";
@@ -18,6 +19,14 @@ interface Props {
 const TREND_ICON = { worsening: TrendingDown, improving: TrendingUp, stable: Minus };
 
 export default function FacilityDetail({ facility, medicines, stock, forecasts, onClose }: Props) {
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   const rows = medicines
     .map((m) => {
       const record = stock.find((s) => s.facilityId === facility.id && s.medicineId === m.id);
@@ -28,7 +37,7 @@ export default function FacilityDetail({ facility, medicines, stock, forecasts, 
     .sort((a, b) => (a.forecast.daysToStockout ?? 999) - (b.forecast.daysToStockout ?? 999));
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-40 flex justify-end bg-black/50" onClick={onClose} role="dialog" aria-modal="true" aria-label={`${facility.name} detail`}>
       <div
         className="h-full w-full max-w-md bg-slate-900 border-l border-slate-700 overflow-y-auto overflow-x-visible p-5"
         onClick={(e) => e.stopPropagation()}
@@ -38,7 +47,7 @@ export default function FacilityDetail({ facility, medicines, stock, forecasts, 
             <div className="text-[11px] uppercase tracking-wide text-slate-500">{facility.type} · {facility.clusterName}</div>
             <h2 className="text-lg font-semibold text-slate-100">{facility.name}</h2>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-200">
+          <button onClick={onClose} aria-label="Close facility detail" className="text-slate-500 hover:text-slate-200">
             <X size={20} />
           </button>
         </div>
